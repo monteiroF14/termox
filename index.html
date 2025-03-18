@@ -73,7 +73,7 @@
     const q = params.get("q") ?? 1;
 
     async function fetchWord() {
-        const res = await fetch("http://localhost:3000/word")
+        const res = await fetch("/word")
         const word = await res.text()
         return word
     }
