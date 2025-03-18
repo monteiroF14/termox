@@ -21,12 +21,18 @@ jobs:
     permissions:
       pages: write  
       id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
+      
+      - name: Upload Artifact
+      - uses: actions/upload-artifact@v4
 
       - name: Deploy to GitHub Pages
         id: deployment
