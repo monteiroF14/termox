@@ -12,7 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
-      - run: bun main.js
+      - run: |
+          nohup bun main.js > server.log 2>&1 & 
 
   deploy:
     name: Deploy
