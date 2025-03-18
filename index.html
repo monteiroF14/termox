@@ -38,7 +38,6 @@
     </div>
 
 
-    <!-- Virtual Keyboard -->
     <div class="grid grid-cols-10 gap-2 max-w-md">
         <script>
             const keys = "QWERTYUIOPASDFGHJKLZXCVBNM";
@@ -87,7 +86,6 @@
             chosen.push(await fetchWord());
         }
     }
-    startGame()
 
     document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll("input").forEach(input => input.value = "");
@@ -99,10 +97,9 @@
         document.querySelectorAll("input").forEach((input) => {
             input.addEventListener("input", (e) => {
                 const value = e.target.value.toUpperCase();
-                e.target.value = value; // Enforce uppercase
+                e.target.value = value;
 
                 if (value && e.target.dataset.col < 4) {
-                    // Move focus to next input in row
                     const nextInput = document.querySelector(`[data-row="${currentRow}"][data-col="${parseInt(e.target.dataset.col) + 1}"]`);
                     if (nextInput) nextInput.focus();
                 }
@@ -119,7 +116,6 @@
 
                 if (e.key === "Backspace") {
                     if (e.target.value === "" && e.target.dataset.col > 0) {
-                        // Move focus to previous input in row
                         const prevInput = document.querySelector(`[data-row="${currentRow}"][data-col="${parseInt(e.target.dataset.col) - 1}"]`);
                         if (prevInput) prevInput.focus();
                     }
@@ -127,6 +123,8 @@
             });
         });
     });
+
+    startGame()
 </script>
 
 </html>
