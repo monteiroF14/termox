@@ -24,6 +24,10 @@ Bun.serve({
                 let filePath = `public${url.pathname}`;
 
                 try {
+                        if (url.pathname === "/") {
+                                filePath = "public/index.html";
+                        }
+
                         if (url.pathname === "/wordlist") {
                                 const wordlistFile = Bun.file("wordlist.txt");
                                 if (await wordlistFile.exists()) {
