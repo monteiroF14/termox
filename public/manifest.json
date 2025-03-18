@@ -1,0 +1,22 @@
+{
+	"background_color": "#ffffff",
+	"description": "TERMO mobile",
+	"display": "standalone",
+	"gcm_user_visible_only": true,
+	"icons": [
+		{
+			"src": "icon.png",
+			"sizes": "512x512",
+			"type": "image/png"
+		}
+	],
+	"name": "TERMOx",
+	"short_name": "TERMOx",
+	"start_url": "http://localhost:3000",
+	"theme_color": "#ffffff",
+	"scope": "/",
+	"launch_handler": {
+		"route_to": "existing-client",
+		"navigate_existing_client": "never"
+	}
+}

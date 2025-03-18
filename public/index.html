@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="manifest" href="manifest.json" crossorigin="use-credentials" />
+    <title>TERMOx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+    <h1 class="text-4xl font-bold text-gray-900 mb-4">TERMOx</h1>
+    <nav class="mb-6 space-x-4">
+        <a href="/" class="text-blue-500 hover:underline">Termo</a>
+        <a href="/?q=2" class="text-blue-500 hover:underline">Dueto</a>
+        <a href="/?q=4" class="text-blue-500 hover:underline">Quarteto</a>
+    </nav>
+
+    <div class="grid grid-rows-6 gap-2 mb-4" id="game-grid">
+        <script>
+            for (let row = 0; row < 6; row++) {
+                document.write('<div class="grid grid-cols-5 gap-2" data-row="' + row + '">');
+                for (let col = 0; col < 5; col++) {
+                    const disabledClass = row === 0 ? "" : "bg-gray-200 opacity-50";
+                    document.write(`
+                        <input maxlength='1' onkeydown='return /[a-z]/i.test(event.key)' class="w-12 h-12 border-2 border-gray-300 text-center flex items-center justify-center text-2xl font-bold uppercase caret-transparent focus:outline-none focus:border-4 focus:border-cyan-300 ${disabledClass}" 
+                            data-row="${row}" data-col="${col}">
+                        </input>
+                    `);
+                }
+                document.write('</div>');
+            }
+        </script>
+    </div>
+
+
+    <!-- Virtual Keyboard -->
+    <div class="grid grid-cols-10 gap-2 max-w-md">
+        <script>
+            const keys = "QWERTYUIOPASDFGHJKLZXCVBNM";
+            for (const key of keys) {
+                document.write(`<button class="p-2 w-10 h-10 bg-gray-300 text-gray-900 rounded font-bold">${key}</button>`);
+            }
+        </script>
+    </div>
+
+    <div class="mt-6 p-4 bg-white shadow-lg rounded-lg">
+        <label class="flex items-center space-x-2">
+            <input type="radio" name="cheats" value="off" class="w-4 h-4" checked>
+            <span>Normal Mode</span>
+        </label>
+        <label class="flex items-center space-x-2 mt-2">
+            <input type="radio" name="cheats" value="infinite" class="w-4 h-4">
+            <span>Infinite Lives</span>
+        </label>
+    </div>
+
+</body>
+
+<script>
+    let wordSet = new Set()
+
+    fetch("./wordlist").then(res => res.text())
+        .then(data => {
+            wordSet = new Set(data.split("\n").map(word => word.trim().toUpperCase()));
+        });
+
+    const isValidWord = (word) => wordSet.has(word.toUpperCase());
+
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q") ?? 1;
+
+    async function fetchWord() {
+        const res = await fetch("http://localhost:3000/word")
+        const word = await res.text()
+        return word
+    }
+
+    let chosen = [];
+
+    async function startGame() {
+        for (let i = 0; i < q; i++) {
+            chosen.push(await fetchWord());
+        }
+    }
+    startGame()
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll("input").forEach(input => input.value = "");
+
+        let currentRow = 0;
+        let inputs = document.querySelectorAll(`[data-row="${currentRow}"] input`);
+        inputs[0].focus();
+
+        document.querySelectorAll("input").forEach((input) => {
+            input.addEventListener("input", (e) => {
+                const value = e.target.value.toUpperCase();
+                e.target.value = value; // Enforce uppercase
+
+                if (value && e.target.dataset.col < 4) {
+                    // Move focus to next input in row
+                    const nextInput = document.querySelector(`[data-row="${currentRow}"][data-col="${parseInt(e.target.dataset.col) + 1}"]`);
+                    if (nextInput) nextInput.focus();
+                }
+            });
+
+            input.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    if (e.target.value === "") return
+                    const letter = document.querySelector(`[data-row="${currentRow}"][data-col="${parseInt(e.target.dataset.col)}"]`)
+                    const word = Array.from(letter.parentElement.querySelectorAll("input")).map(l => l.value.trim()).join("")
+                    console.log("got: ", isValidWord(word))
+                    console.log("chosen: ", chosen)
+                }
+
+                if (e.key === "Backspace") {
+                    if (e.target.value === "" && e.target.dataset.col > 0) {
+                        // Move focus to previous input in row
+                        const prevInput = document.querySelector(`[data-row="${currentRow}"][data-col="${parseInt(e.target.dataset.col) - 1}"]`);
+                        if (prevInput) prevInput.focus();
+                    }
+                }
+            });
+        });
+    });
+</script>
+
+</html>
