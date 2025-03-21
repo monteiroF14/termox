@@ -10,14 +10,27 @@
     <link rel="manifest" href="manifest.json" crossorigin="use-credentials" />
     <title>TERMOx</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.css" rel="stylesheet" />
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Mitr:wght@200;300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Mitr:wght@200;300;400;500;600;700&display=swap');
+    </style>
 </head>
 
-<body class="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-    <h1 class="text-4xl font-bold text-gray-900 mb-4">TERMOx</h1>
-    <nav class="mb-6 space-x-4">
-        <a href="/" class="text-blue-500 hover:underline">Termo</a>
-        <a href="/?q=2" class="text-blue-500 hover:underline">Dueto</a>
-        <a href="/?q=4" class="text-blue-500 hover:underline">Quarteto</a>
+<body class="flex flex-col items-center justify-center font-mitr font-semibold text-lg min-h-screen bg-slate-700 p-4">
+    <div id="modal"></div>
+    <h1 class="text-4xl font-semibold font-[Mitr] text-white mb-4 tracking-wider">TERMOx</h1>
+    <nav class="mb-6 space-x-4 flex justify-center">
+        <a href="/" class="text-blue-500 hover:underline">
+            Termo
+        </a>
+        <a href="/?q=2" class="text-blue-500 hover:underline">
+            Dueto
+        </a>
+        <a href="/?q=4" class="text-blue-500 hover:underline">
+            Quarteto
+        </a>
     </nav>
 
     <div class="grid grid-rows-6 gap-2 mb-4" id="game-grid">
@@ -25,11 +38,11 @@
             for (let row = 0; row < 6; row++) {
                 document.write('<div class="grid grid-cols-5 gap-2" data-row="' + row + '">');
                 for (let col = 0; col < 5; col++) {
-                    const disabledClass = row === 0 ? "" : "bg-gray-200 opacity-50";
+                    const disabledClass = row === 0 ? "" : "bg-slate-500 opacity-50 border-slate-500";
                     document.write(`
-                        <input maxlength='1' onkeydown='return /[a-z]/i.test(event.key)' class="w-12 h-12 border-2 border-gray-300 text-center flex items-center justify-center text-2xl font-bold uppercase caret-transparent focus:outline-none focus:border-4 focus:border-cyan-300 ${disabledClass}" 
+                        <div class="size-12 border-4 text-3xl text-center flex items-center justify-center text-white uppercase rounded-md ${disabledClass}"
                             data-row="${row}" data-col="${col}">
-                        </input>
+                        </div>
                     `);
                 }
                 document.write('</div>');
@@ -37,94 +50,246 @@
         </script>
     </div>
 
-
-    <div class="grid grid-cols-10 gap-2 max-w-md">
-        <script>
-            const keys = "QWERTYUIOPASDFGHJKLZXCVBNM";
-            for (const key of keys) {
-                document.write(`<button class="p-2 w-10 h-10 bg-gray-300 text-gray-900 rounded font-bold">${key}</button>`);
-            }
-        </script>
+    <div id="keyboard">
+        <div id="keyboard-buttons" class="grid grid-cols-10 gap-2 max-w-md"></div>
     </div>
-
-    <div class="mt-6 p-4 bg-white shadow-lg rounded-lg">
-        <label class="flex items-center space-x-2">
-            <input type="radio" name="cheats" value="off" class="w-4 h-4" checked>
-            <span>Normal Mode</span>
-        </label>
-        <label class="flex items-center space-x-2 mt-2">
-            <input type="radio" name="cheats" value="infinite" class="w-4 h-4">
-            <span>Infinite Lives</span>
-        </label>
-    </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
 </body>
 
 <script>
-    let wordSet = new Set()
-
-    fetch("./wordlist").then(res => res.text())
-        .then(data => {
-            wordSet = new Set(data.split("\n").map(word => word.trim().toUpperCase()));
-        });
-
-    const isValidWord = (word) => wordSet.has(word.toUpperCase());
-
-    const params = new URLSearchParams(window.location.search);
-    const q = params.get("q") ?? 1;
-
-    async function fetchWord() {
-        const res = await fetch("/word")
-        const word = await res.text()
-        return word
-    }
-
-    let chosen = [];
-
-    async function startGame() {
-        for (let i = 0; i < q; i++) {
-            chosen.push(await fetchWord());
-        }
-    }
-
     document.addEventListener("DOMContentLoaded", () => {
-        document.querySelectorAll("input").forEach(input => input.value = "");
+        let gameEnded = false
 
+        const gameGrid = document.getElementById("game-grid");
+        const rows = gameGrid.getElementsByClassName("grid");
         let currentRow = 0;
-        let inputs = document.querySelectorAll(`[data-row="${currentRow}"] input`);
-        inputs[0].focus();
+        let currentCol = 0;
 
-        document.querySelectorAll("input").forEach((input) => {
-            input.addEventListener("input", (e) => {
-                const value = e.target.value.toUpperCase();
-                e.target.value = value;
+        const MAX_COLS = 5
+        const MAX_ROWS = 6
+        const keys = "QWERTYUIOPASDFGHJKLZXCVBNM";
 
-                if (value && e.target.dataset.col < 4) {
-                    const nextInput = document.querySelector(`[data-row="${currentRow}"][data-col="${parseInt(e.target.dataset.col) + 1}"]`);
-                    if (nextInput) nextInput.focus();
-                }
+        const classes = {
+            base: ["text-white", "font-[Mitr]", "cursor-pointer", "font-semibold", "rounded-md", "opacity-100"],
+            button: ["p-2", "text-white", "w-10", "h-10", "bg-slate-600", "rounded", "font-semibold", "font-[Mitr]", "last:w-fit"],
+            correct: ["bg-lime-500", "border-lime-500"],
+            present: ["bg-yellow-500", "border-yellow-500"],
+            used: ["bg-slate-900", "border-slate-900", "bg-opacity-30"],
+            incorrect: ["bg-slate-500", "border-slate-500"],
+            active: ["bg-transparent", "border-slate-500"],
+            focus: ["border-white"]
+        }
+
+        function applyClass(element, type) {
+            element.classList.remove(...Object.values(classes).flat());
+            element.classList.add(...classes.base, ...classes[type]);
+        }
+
+        const keyboard = document.getElementById("keyboard")
+        const keyboardButtons = document.getElementById("keyboard-buttons");
+
+        function createKeyboardButton(text, key) {
+            const button = document.createElement("button");
+            button.textContent = text;
+            button.dataset.key = key;
+            button.classList.add(...classes.button);
+            keyboardButtons.appendChild(button);
+        }
+
+        const updatedKeys = [...keys].slice(0, 19)
+            .concat(["Backspace"])
+            .concat([...keys].slice(19))
+            .concat(["Enter"]);
+
+        updatedKeys.forEach((key) => {
+            createKeyboardButton(key === "Backspace" ? "←" : key, key);
+        });
+
+        function updateFocus() {
+            Array.from(rows[currentRow].children).forEach((cell, index) => {
+                applyClass(cell, index === currentCol ? "focus" : "active");
+            });
+        }
+
+        function handleBackspace() {
+            const cell = rows[currentRow].children[currentCol];
+            if (cell.textContent !== "") {
+                cell.textContent = "";
+            }
+            if (currentCol > 0) {
+                currentCol--
+            }
+            updateFocus();
+        }
+
+        async function handleEnter() {
+            const word = Array.from(rows[currentRow].children).map(cell => cell.textContent.trim()).join("");
+            if (!isValidWord(word)) {
+                shakeRow(currentRow);
+                return;
+            }
+            await Promise.all(chosen.map((chosenWord) => flipCells(currentRow, chosenWord)));
+
+            if (chosen.includes(word)) {
+                gameEnded = true;
+                await fetchModal()
+            } else if (currentRow + 1 < MAX_ROWS) {
+                currentRow++;
+                currentCol = 0;
+                updateFocus();
+            }
+        }
+
+        let wordSet = new Set()
+
+        fetch("./wordlist").then(res => res.text())
+            .then(data => {
+                wordSet = new Set(data.split("\n").map(word => word.trim().toUpperCase()));
             });
 
-            input.addEventListener("keydown", (e) => {
-                if (e.key === "Enter") {
-                    if (e.target.value === "") return
-                    const letter = document.querySelector(`[data-row="${currentRow}"][data-col="${parseInt(e.target.dataset.col)}"]`)
-                    const word = Array.from(letter.parentElement.querySelectorAll("input")).map(l => l.value.trim()).join("")
-                    console.log("got: ", isValidWord(word))
-                    console.log("chosen: ", chosen)
-                }
+        const isValidWord = (word) => wordSet.has(word.toUpperCase());
 
-                if (e.key === "Backspace") {
-                    if (e.target.value === "" && e.target.dataset.col > 0) {
-                        const prevInput = document.querySelector(`[data-row="${currentRow}"][data-col="${parseInt(e.target.dataset.col) - 1}"]`);
-                        if (prevInput) prevInput.focus();
-                    }
+        const params = new URLSearchParams(window.location.search);
+        const q = params.get("q") ?? 1;
+
+        async function fetchWord() {
+            const res = await fetch("/word")
+            const word = await res.text()
+            return word
+        }
+
+        let chosen = [];
+
+        async function startGame() {
+            for (let i = 0; i < q; i++) {
+                chosen.push(await fetchWord());
+            }
+        }
+
+        function shakeRow(rowIndex) {
+            Array.from(rows[rowIndex].children).forEach(cell => {
+                cell.classList.add("animate-bounce");
+                setTimeout(() => {
+                    cell.classList.remove("animate-bounce");
+                }, 500);
+            });
+        }
+
+        function flipCells(rowIndex, chosenWord) {
+            const row = rows[rowIndex].children;
+            const wordArray = Array.from(row).map(cell => cell.textContent.trim());
+
+            const flipPromises = wordArray.map((letter, index) => {
+                const cell = row[index];
+                const keyboardKey = keyboard.querySelector(`[data-key="${letter}"]`);
+
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        if (chosenWord[index] === letter) {
+                            applyClass(cell, "correct");
+                            applyClass(keyboardKey, "correct");
+                        } else if (chosenWord.includes(letter)) {
+                            applyClass(cell, "present");
+                            if (!keyboardKey.classList.contains("bg-lime-500")) {
+                                applyClass(keyboardKey, "present");
+                            }
+                        } else {
+                            applyClass(cell, "incorrect");
+                            applyClass(keyboardKey, "used");
+                        }
+                        resolve();
+                    }, index * 450);
+                });
+            });
+
+            return Promise.all(flipPromises);
+        }
+
+        function selectCell(rowIndex, colIndex) {
+            currentRow = rowIndex;
+            currentCol = colIndex;
+            updateFocus();
+        }
+
+        function write(value) {
+            if (gameEnded) return;
+            if (value === "BACKSPACE") return handleBackspace();
+            if (value === "ENTER") return handleEnter();
+
+            if (keys.includes(value) && currentCol < MAX_COLS) {
+                const cell = rows[currentRow].children[currentCol];
+                cell.textContent = value;
+                if (currentCol + 1 < MAX_COLS) currentCol++;
+            }
+
+            updateFocus();
+        }
+
+        Array.from(rows).forEach((row, rowIndex) => {
+            row.addEventListener("click", (event) => write);
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.ctrlKey || event.metaKey) {
+                if (keys.includes(event.key.toUpperCase()) || ["BACKSPACE", "ENTER"].includes(event.key.toUpperCase())) {
+                    return;
                 }
+            }
+            const key = event.key.toUpperCase();
+            if (keys.includes(key) || ["BACKSPACE", "ENTER"].includes(key)) write(key);
+        });
+
+        keyboard.addEventListener("click", (event) => {
+            const key = event.target.dataset.key;
+            if (key) write(key);
+        });
+
+        Array.from(rows).forEach((row, rowIndex) => {
+            row.addEventListener("click", (event) => {
+                const cellIndex = Array.from(row.children).indexOf(event.target);
+                if (cellIndex !== -1) selectCell(rowIndex, cellIndex);
             });
         });
-    });
 
-    startGame()
+        updateFocus();
+        startGame();
+
+        async function fetchModal() {
+            const res = await fetch("./modal.html")
+            const modal = await res.text()
+
+            const modalElement = document.getElementById("modal")
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = modal;
+
+            modalElement.appendChild(tempDiv.firstElementChild);
+
+            let word = '';
+            const row = rows[currentRow].children;
+
+            for (let i = 0; i < row.length; i++) {
+                word += row[i].textContent.trim();
+            }
+
+            const resultMessage = document.getElementById("game-result-message");
+            const attemptsText = document.getElementById("attempts-text");
+            const revealedWord = document.getElementById("revealed-word");
+
+            if (gameEnded) {
+                if (chosen.includes(word)) {
+                    resultMessage.textContent = "Great job! You guessed the word.";
+                    attemptsText.textContent = `You solved it in ${currentRow + 1} attempts. Well done!`;
+                    revealedWord.innerHTML = `<span class="text-gray-500 font-semibold">The word was: </span><span id="actual-word" class="font-semibold">${word}</span>`;
+                    revealedWord.classList.add("text-2xl", "font-bold");
+                } else {
+                    resultMessage.textContent = "Game Over! Better luck next time!";
+                    attemptsText.textContent = `You reached the max attempts (${MAX_ROWS}). Keep practicing!`;
+                    revealedWord.textContent = word;
+                    revealedWord.classList.add("text-6xl", "font-extrabold", "text-red-500");
+                }
+            }
+        }
+    })
 </script>
 
 </html>
