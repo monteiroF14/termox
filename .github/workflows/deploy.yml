@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - run: |
-          nohup bun main.js > server.log 2>&1 &
+          bun main.js > server.log 2>&1
 
   deploy:
     name: Deploy
