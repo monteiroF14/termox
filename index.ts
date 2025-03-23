@@ -47,6 +47,6 @@ async function handler(req: Request): Promise<Response> {
         }
 }
 
-Deno.serve(handler, { port: 3000 });
+Deno.serve({ port: 3000 }, handler);
 console.log("Listening on port 3000...");
 
