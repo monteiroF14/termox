@@ -97,12 +97,12 @@
         }
 
         const updatedKeys = [...keys].slice(0, 19)
-            .concat(["Backspace"])
+            .concat(["BACKSPACE"])
             .concat([...keys].slice(19))
-            .concat(["Enter"]);
+            .concat(["ENTER"]);
 
         updatedKeys.forEach((key) => {
-            createKeyboardButton(key === "Backspace" ? "←" : key, key);
+            createKeyboardButton(key === "BACKSPACE" ? "←" : key, key);
         });
 
         function updateFocus() {
