@@ -1,14 +1,19 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   let gameEnded = false;
+  const completedGrids = new Set();
 
-  const gameGrid = document.getElementById("game-grid");
-  const rows = gameGrid.getElementsByClassName("grid");
-  let currentRow = 0;
-  let currentCol = 0;
+  const params = new URLSearchParams(globalThis.location.search);
+  const query = params.get("q") ?? 1;
+
+  const gameContainer = document.getElementById("game-container");
+  const keyboard = document.getElementById("keyboard-buttons");
 
   const MAX_COLS = 5;
-  const MAX_ROWS = 6;
+  const MAX_ROWS = query == 1 ? 6 : query == 2 ? 8 : 10;
   const keys = "QWERTYUIOPASDFGHJKLZXCVBNM";
+
+  let currentRow = 0;
+  let currentCol = 0;
 
   const classes = {
     base: [
@@ -34,24 +39,82 @@ document.addEventListener("DOMContentLoaded", () => {
     present: ["bg-yellow-500", "border-yellow-500"],
     used: ["bg-slate-900", "border-slate-900", "bg-opacity-30"],
     incorrect: ["bg-slate-500", "border-slate-500"],
-    active: ["bg-transparent", "border-slate-500"],
+    active: ["bg-transparent", "border-slate-500", "opacity-100"],
     focus: ["border-white"],
   };
+
+  let wordSet = new Set();
+  async function fetchWord() {
+    const res = await fetch("/word");
+    const word = await res.text();
+    return word;
+  }
+
+  const chosen = [];
+
+  function createGameGrid(gridIndex) {
+    const gridWrapper = document.createElement("div");
+    gridWrapper.classList.add("mb-8");
+
+    const grid = document.createElement("div");
+    grid.classList.add("grid", "grid-rows-6", "gap-2", "mb-4");
+    grid.dataset.gridIndex = gridIndex;
+
+    for (let row = 0; row < MAX_ROWS; row++) {
+      const rowDiv = document.createElement("div");
+      rowDiv.classList.add("grid", "grid-cols-5", "gap-2");
+      rowDiv.dataset.row = row;
+
+      for (let col = 0; col < MAX_COLS; col++) {
+        const cell = document.createElement("div");
+        cell.classList.add(
+          "size-12",
+          "border-4",
+          "text-3xl",
+          "text-center",
+          "flex",
+          "items-center",
+          "justify-center",
+          "text-white",
+          "uppercase",
+          "rounded-md",
+        );
+        if (row > 0) {
+          cell.classList.add("bg-slate-500", "opacity-50", "border-slate-500");
+        }
+
+        cell.dataset.row = row;
+        cell.dataset.col = col;
+        cell.dataset.gridIndex = gridIndex;
+
+        rowDiv.appendChild(cell);
+      }
+      grid.appendChild(rowDiv);
+    }
+    gridWrapper.appendChild(grid);
+    return gridWrapper;
+  }
+
+  fetch("./wordlist").then((res) => res.text())
+    .then((data) => {
+      wordSet = new Set(
+        data.split("\n").map((word) => word.trim().toUpperCase()),
+      );
+    });
+
+  const isValidWord = (word) => wordSet.has(word.toUpperCase());
 
   function applyClass(element, type) {
     element.classList.remove(...Object.values(classes).flat());
     element.classList.add(...classes.base, ...classes[type]);
   }
 
-  const keyboard = document.getElementById("keyboard");
-  const keyboardButtons = document.getElementById("keyboard-buttons");
-
   function createKeyboardButton(text, key) {
     const button = document.createElement("button");
     button.textContent = text;
     button.dataset.key = key;
     button.classList.add(...classes.button);
-    keyboardButtons.appendChild(button);
+    keyboard.appendChild(button);
   }
 
   const updatedKeys = [...keys].slice(0, 19)
@@ -64,130 +127,162 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function updateFocus() {
-    Array.from(rows[currentRow].children).forEach((cell, index) => {
-      applyClass(
-        cell,
-        index === currentCol ? "focus" : "active",
-      );
+    document.querySelectorAll("[data-grid-index]").forEach((grid) => {
+      const rows = grid.querySelectorAll(".grid > .grid-cols-5");
+      if (rows[currentRow]) {
+        Array.from(rows[currentRow].children).forEach((cell, index) => {
+          cell.classList.remove("opacity-50");
+          applyClass(
+            cell,
+            index === currentCol ? "focus" : "active",
+          );
+        });
+      }
     });
   }
 
-  function handleBackspace() {
-    const cell = rows[currentRow].children[currentCol];
-    if (cell.textContent !== "") {
-      cell.textContent = "";
-    }
-    if (currentCol > 0) {
-      currentCol--;
-    }
+  function handleBackspace(grids) {
+    let cellCleared = false;
+
+    grids.forEach((grid) => {
+      const cell = grid.querySelector(
+        `[data-row='${currentRow}'][data-col='${currentCol}']`,
+      );
+      if (cell && cell.textContent !== "") {
+        cell.textContent = "";
+        cellCleared = true;
+      }
+    });
+    if (!cellCleared && currentCol > 0) currentCol--;
     updateFocus();
   }
 
-  async function handleEnter() {
-    const word = Array.from(rows[currentRow].children).map((cell) =>
-      cell.textContent.trim()
-    ).join("");
+  async function handleEnter(grids) {
+    let allCorrect = true;
+    let word;
+
+    grids.forEach((grid, index) => {
+      if (completedGrids.has(index)) return;
+
+      word = Array.from(
+        grid.querySelectorAll(`[data-row="${currentRow}"][data-col]`),
+      )
+        .map((cell) => cell.textContent.trim())
+        .join("");
+
+      if (word !== chosen[index]) allCorrect = false;
+      else completedGrids.add(index);
+    });
+
     if (!isValidWord(word)) {
       shakeRow(currentRow);
       return;
     }
+
     await Promise.all(
       chosen.map((chosenWord) => flipCells(currentRow, chosenWord)),
     );
 
-    if (chosen.includes(word)) {
+    if (allCorrect || currentRow + 1 === MAX_ROWS) {
       gameEnded = true;
       await fetchModal();
-    } else if (currentRow + 1 < MAX_ROWS) {
+    } else {
       currentRow++;
       currentCol = 0;
       updateFocus();
     }
   }
 
-  let wordSet = new Set();
+  async function startGame() {
+    gameContainer.innerHTML = "";
+    chosen.length = 0;
+    currentRow = 0;
+    currentCol = 0;
+    gameEnded = false;
+    completedGrids.clear();
 
-  fetch("./wordlist").then((res) => res.text())
-    .then((data) => {
-      wordSet = new Set(
-        data.split("\n").map((word) => word.trim().toUpperCase()),
-      );
+    document.querySelectorAll("#keyboard-buttons button").forEach((button) => {
+      button.classList.remove(...Object.values(classes).flat());
+      button.classList.add(...classes.button);
     });
 
-  const isValidWord = (word) => wordSet.has(word.toUpperCase());
-
-  const params = new URLSearchParams(globalThis.location.search);
-  const q = params.get("q") ?? 1;
-
-  async function fetchWord() {
-    const res = await fetch("/word");
-    const word = await res.text();
-    return word;
-  }
-
-  const chosen = [];
-
-  async function startGame() {
-    for (let i = 0; i < q; i++) {
+    const fragment = document.createDocumentFragment();
+    for (let i = 0; i < query; i++) {
       chosen.push(await fetchWord());
+      fragment.appendChild(createGameGrid(i));
     }
+    gameContainer.appendChild(fragment);
+    updateFocus();
+
+    document.querySelectorAll(
+      "[data-grid-index]:not([data-row]):not([data-col])",
+    ).forEach((grid) => {
+      const cells = grid.querySelectorAll("[data-row][data-col]");
+      cells.forEach((cell) => {
+        cell.addEventListener("click", () => {
+          const rowIndex = parseInt(cell.dataset.row);
+          const colIndex = parseInt(cell.dataset.col);
+          selectCell(rowIndex, colIndex);
+        });
+      });
+    });
   }
 
   function shakeRow(rowIndex) {
-    Array.from(rows[rowIndex].children).forEach((cell) => {
-      cell.classList.add("animate-bounce");
-      setTimeout(() => {
-        cell.classList.remove("animate-bounce");
-      }, 500);
+    document.querySelectorAll("[data-grid-index]").forEach((grid) => {
+      const rows = grid.querySelectorAll(".grid > .grid-cols-5");
+      if (rowIndex >= rows.length) return;
+
+      const row = rows[rowIndex].children;
+      Array.from(row).forEach((cell) => {
+        cell.classList.add("animate-bounce");
+        setTimeout(() => {
+          cell.classList.remove("animate-bounce");
+        }, 500);
+      });
     });
   }
 
   function flipCells(rowIndex, chosenWord) {
-    const row = rows[rowIndex].children;
-    const wordArray = Array.from(row).map((cell) => cell.textContent.trim());
+    return Promise.all(
+      Array.from(document.querySelectorAll("[data-grid-index]"), (grid) => {
+        const rows = grid.querySelectorAll(".grid > .grid-cols-5");
+        if (rowIndex >= rows.length) return Promise.resolve();
 
-    const flipPromises = wordArray.map((letter, index) => {
-      const cell = row[index];
-      const keyboardKey = keyboard.querySelector(
-        `[data-key="${letter}"]`,
-      );
+        const row = rows[rowIndex].children;
 
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          if (chosenWord[index] === letter) {
-            applyClass(cell, "correct");
-            applyClass(
-              keyboardKey,
-              "correct",
+        return Promise.all(
+          Array.from(row, (cell, index) => {
+            const letter = cell.textContent.trim();
+            const keyboardKey = keyboard.querySelector(
+              `[data-key="${letter}"]`,
             );
-          } else if (
-            chosenWord.includes(letter)
-          ) {
-            applyClass(cell, "present");
-            if (
-              !keyboardKey.classList
-                .contains(
-                  "bg-lime-500",
-                )
-            ) {
-              applyClass(
-                keyboardKey,
-                "present",
-              );
-            }
-          } else {
-            applyClass(cell, "incorrect");
-            applyClass(keyboardKey, "used");
-          }
-          resolve();
-        }, index * 450);
-      });
-    });
-
-    return Promise.all(flipPromises);
+            return new Promise((resolve) => {
+              setTimeout(() => {
+                if (chosenWord[index] === letter) {
+                  applyClass(cell, "correct");
+                  applyClass(keyboardKey, "correct");
+                } else if (chosenWord.includes(letter)) {
+                  applyClass(cell, "present");
+                  if (!keyboardKey.classList.contains("bg-lime-500")) {
+                    applyClass(keyboardKey, "present");
+                  }
+                } else {
+                  applyClass(cell, "incorrect");
+                  applyClass(keyboardKey, "used");
+                }
+                resolve();
+              }, index * 450);
+            });
+          }),
+        );
+      }),
+    );
   }
 
   function selectCell(rowIndex, colIndex) {
+    if (rowIndex !== currentRow) return;
+
     currentRow = rowIndex;
     currentCol = colIndex;
     updateFocus();
@@ -195,21 +290,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function write(value) {
     if (gameEnded) return;
-    if (value === "BACKSPACE") return handleBackspace();
-    if (value === "ENTER") return handleEnter();
+    const grids = document.querySelectorAll(
+      "[data-grid-index]:not([data-row]):not([data-col])",
+    );
+
+    if (value === "BACKSPACE") return handleBackspace(grids);
+    if (value === "ENTER") return handleEnter(grids);
 
     if (keys.includes(value) && currentCol < MAX_COLS) {
-      const cell = rows[currentRow].children[currentCol];
-      cell.textContent = value;
+      grids.forEach((grid) => {
+        const cell = grid.querySelector(
+          `[data-grid-index] [data-row='${currentRow}'][data-col='${currentCol}']`,
+        );
+        if (cell) {
+          cell.textContent = value;
+        }
+      });
       if (currentCol + 1 < MAX_COLS) currentCol++;
     }
 
     updateFocus();
   }
-
-  Array.from(rows).forEach((row) => {
-    row.addEventListener("click", write);
-  });
 
   document.addEventListener("keydown", (event) => {
     if (event.ctrlKey || event.metaKey) {
@@ -222,6 +323,19 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
     }
+
+    if (event.key === "ArrowUp" && currentRow > 0) {
+      return;
+    } else if (event.key === "ArrowDown" && currentRow < MAX_ROWS - 1) {
+      return;
+    } else if (event.key === "ArrowLeft" && currentCol > 0) {
+      currentCol--;
+      updateFocus();
+    } else if (event.key === "ArrowRight" && currentCol < MAX_COLS - 1) {
+      currentCol++;
+      updateFocus();
+    }
+
     const key = event.key.toUpperCase();
     if (
       keys.includes(key) ||
@@ -234,64 +348,89 @@ document.addEventListener("DOMContentLoaded", () => {
     if (key) write(key);
   });
 
-  Array.from(rows).forEach((row, rowIndex) => {
-    row.addEventListener("click", (event) => {
-      const cellIndex = Array.from(row.children).indexOf(
-        event.target,
-      );
-      if (cellIndex !== -1) selectCell(rowIndex, cellIndex);
+  updateFocus();
+  await startGame();
+
+  document.querySelectorAll(
+    "[data-grid-index]:not([data-row]):not([data-col])",
+  ).forEach((grid) => {
+    const cells = grid.querySelectorAll("[data-row][data-col]");
+    cells.forEach((cell) => {
+      cell.addEventListener("click", () => {
+        const rowIndex = parseInt(cell.dataset.row);
+        const colIndex = parseInt(cell.dataset.col);
+        selectCell(rowIndex, colIndex);
+      });
     });
   });
-
-  updateFocus();
-  startGame();
 
   async function fetchModal() {
     const res = await fetch("./modal.html");
     const modal = await res.text();
 
     const modalElement = document.getElementById("modal");
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = modal;
+    modalElement.innerHTML = modal;
 
-    modalElement.appendChild(tempDiv.firstElementChild);
+    const staticModal = document.getElementById("static-modal");
+    const closeButton = staticModal.querySelector("[data-modal-hide]");
+    const playAgainButton = staticModal.querySelectorAll(
+      "#play-again",
+    );
 
-    let word = "";
-    const row = rows[currentRow].children;
-
-    for (let i = 0; i < row.length; i++) {
-      word += row[i].textContent.trim();
+    function closeModal() {
+      staticModal.classList.add("hidden");
     }
 
-    const resultMessage = document.getElementById(
-      "game-result-message",
-    );
+    closeButton.addEventListener("click", closeModal);
+    playAgainButton.forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        closeModal();
+        await startGame();
+      });
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeModal();
+      }
+    });
+
+    let allCorrect = true;
+    const wordsAttempted = [];
+
+    document.querySelectorAll(
+      "[data-grid-index]:not([data-row]):not([data-col])",
+    ).forEach((grid, index) => {
+      let word = "";
+      grid.querySelectorAll(`[data-row='${currentRow}'] [data-col]`).forEach(
+        (cell) => {
+          word += cell.textContent.trim();
+        },
+      );
+
+      wordsAttempted.push(word);
+      if (word !== chosen[index]) allCorrect = false;
+    });
+
+    const resultMessage = document.getElementById("game-result-message");
     const attemptsText = document.getElementById("attempts-text");
     const revealedWord = document.getElementById("revealed-word");
 
-    if (gameEnded) {
-      if (chosen.includes(word)) {
-        resultMessage.textContent = "Great job! You guessed the word.";
-        attemptsText.textContent = `You solved it in ${
-          currentRow + 1
-        } attempts. Well done!`;
-        revealedWord.innerHTML =
-          `<span class="text-gray-500 font-semibold">The word was: </span><span id="actual-word" class="font-semibold">${word}</span>`;
-        revealedWord.classList.add(
-          "text-2xl",
-          "font-bold",
-        );
-      } else {
-        resultMessage.textContent = "Game Over! Better luck next time!";
-        attemptsText.textContent =
-          `You reached the max attempts (${MAX_ROWS}). Keep practicing!`;
-        revealedWord.textContent = word;
-        revealedWord.classList.add(
-          "text-6xl",
-          "font-extrabold",
-          "text-red-500",
-        );
-      }
+    if (allCorrect) {
+      resultMessage.textContent = "Great job! You guessed all words.";
+      attemptsText.textContent = `You solved it in ${
+        currentRow + 1
+      } attempts. Well done!`;
+      revealedWord.innerHTML = "";
+    } else {
+      resultMessage.textContent = "Game Over! Better luck next time!";
+      attemptsText.textContent =
+        `You reached the max attempts (${MAX_ROWS}). Keep practicing!`;
+      revealedWord.innerHTML =
+        `<span class="text-gray-500 font-semibold">The words were: </span><span id="actual-word" class="font-semibold">${
+          chosen.join(", ")
+        }</span>`;
+      revealedWord.classList.add("text-6xl", "font-extrabold", "text-red-500");
     }
   }
 });

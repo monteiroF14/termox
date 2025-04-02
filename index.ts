@@ -1,4 +1,5 @@
 import { crypto } from "@std/crypto/crypto";
+import * as path from "jsr:@std/path";
 
 const wordlistPath = "data/wordlist.txt";
 const file = await Deno.readTextFile(wordlistPath);
@@ -79,7 +80,18 @@ async function handler(req: Request): Promise<Response> {
 
   try {
     const file = await Deno.readFile(filePath);
-    return new Response(file);
+    const ext = path.extname(filePath);
+
+    const contentType = {
+      ".js": "text/javascript",
+      ".html": "text/html",
+      ".css": "text/css",
+      ".json": "application/json",
+      ".png": "image/png",
+      ".jpg": "image/jpeg",
+    }[ext] || "application/octet-stream";
+
+    return new Response(file, { headers: { "Content-Type": contentType } });
   } catch (err) {
     console.error("File serve error:", err);
     return new Response("File not found", { status: 404 });

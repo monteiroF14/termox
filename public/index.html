@@ -14,7 +14,6 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Mitr:wght@200;300;400;500;600;700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Mitr:wght@200;300;400;500;600;700&display=swap');
     </style>
 </head>
 
@@ -33,26 +32,9 @@
         </a>
     </nav>
 
-    <div class="grid grid-rows-6 gap-2 mb-4" id="game-grid">
-        <script>
-            for (let row = 0; row < 6; row++) {
-                document.write('<div class="grid grid-cols-5 gap-2" data-row="' + row + '">');
-                for (let col = 0; col < 5; col++) {
-                    const disabledClass = row === 0 ? "" : "bg-slate-500 opacity-50 border-slate-500";
-                    document.write(`
-                        <div class="size-12 border-4 text-3xl text-center flex items-center justify-center text-white uppercase rounded-md ${disabledClass}"
-                            data-row="${row}" data-col="${col}">
-                        </div>
-                    `);
-                }
-                document.write('</div>');
-            }
-        </script>
-    </div>
+    <div id="game-container" class="flex flex-col items-center space-y-6"></div>
+    <div id="keyboard-buttons" class="grid grid-cols-10 gap-2 max-w-md"></div>
 
-    <div id="keyboard">
-        <div id="keyboard-buttons" class="grid grid-cols-10 gap-2 max-w-md"></div>
-    </div>
     <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
 </body>
 
