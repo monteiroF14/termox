@@ -46,7 +46,7 @@ async function handler(req: Request): Promise<Response> {
       const newWords = body
         .split("\n")
         .map((word) => word.trim())
-        .filter((word) => /^[a-zA-Z]+$/.test(word));
+        .filter((word) => /^[a-zA-Z]{5}$/.test(word));
 
       if (newWords.length === 0) {
         return new Response("No valid words provided", { status: 400 });
@@ -68,6 +68,33 @@ async function handler(req: Request): Promise<Response> {
       });
 
       return new Response("Words added successfully", { status: 201 });
+    } catch (e) {
+      return new Response(`Unknown error: ${e}`, { status: 400 });
+    }
+  }
+
+  if (url.pathname === "/remove" && req.method === "POST") {
+    try {
+      const body = await req.text();
+      const wordToRemove = body.trim();
+
+      if (!/^[a-zA-Z]+$/.test(wordToRemove)) {
+        return new Response("Invalid word. Must be 5 letters (a-z only).", {
+          status: 400,
+        });
+      }
+
+      const fileContent = await Deno.readTextFile(wordlistPath);
+      const words = fileContent
+        .split("\n")
+        .map((w) => w.trim())
+        .filter((w) => w && w.toLowerCase() !== wordToRemove.toLowerCase());
+
+      await Deno.writeTextFile(wordlistPath, words.join("\n") + "\n");
+
+      return new Response(`Word "${wordToRemove}" removed (if it existed)`, {
+        status: 200,
+      });
     } catch (e) {
       return new Response(`Unknown error: ${e}`, { status: 400 });
     }
