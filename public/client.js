@@ -1,3 +1,5 @@
+// remove GAROA
+
 document.addEventListener("DOMContentLoaded", async () => {
   let gameEnded = false;
   const completedGrids = new Set();
@@ -25,15 +27,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       "opacity-100",
     ],
     button: [
-      "p-2",
+      "p-0",
+      "w-6",
+      "h-6",
       "text-white",
-      "w-10",
-      "h-10",
       "bg-slate-600",
       "rounded",
+      "text-sm",
       "font-semibold",
       "font-[Mitr]",
       "last:w-fit",
+
+      // Larger sizes for larger screens
+      "sm:p-2",
+      "sm:w-10",
+      "sm:h-10",
+      "sm:text-lg",
     ],
     correct: ["bg-lime-500", "border-lime-500"],
     present: ["bg-yellow-500", "border-yellow-500"],
@@ -418,17 +427,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (allCorrect) {
       resultMessage.textContent = "Great job! You guessed all words.";
-      attemptsText.textContent = `You solved it in ${
-        currentRow + 1
-      } attempts. Well done!`;
+      attemptsText.textContent = `You solved it in ${currentRow + 1
+        } attempts. Well done!`;
       revealedWord.innerHTML = "";
     } else {
       resultMessage.textContent = "Game Over! Better luck next time!";
       attemptsText.textContent =
         `You reached the max attempts (${MAX_ROWS}). Keep practicing!`;
       revealedWord.innerHTML =
-        `<span class="text-gray-500 font-semibold">The words were: </span><span id="actual-word" class="font-semibold">${
-          chosen.join(", ")
+        `<span class="text-gray-500 font-semibold">The words were: </span><span id="actual-word" class="font-semibold">${chosen.join(", ")
         }</span>`;
       revealedWord.classList.add("text-6xl", "font-extrabold", "text-red-500");
     }
