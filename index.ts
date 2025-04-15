@@ -1,7 +1,7 @@
 import { crypto } from "@std/crypto/crypto";
 import * as path from "jsr:@std/path";
 
-const wordlistPath = "/app/data/wordlist.txt";
+const wordlistPath = "data/wordlist.txt";
 const file = await Deno.readTextFile(wordlistPath);
 const words = file.split("\n");
 
