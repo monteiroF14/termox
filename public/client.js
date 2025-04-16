@@ -317,6 +317,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateFocus();
   }
 
+  function getCurrentWord() {
+    const word = [];
+    const grids = document.querySelectorAll(
+      "[data-grid-index]:not([data-row]):not([data-col])",
+    );
+    grids.forEach((grid) => {
+      grid
+        .querySelectorAll(`[data-row='${currentRow}'][data-col]`)
+        .forEach((cell) => {
+          word.push(cell.textContent.trim());
+        });
+    });
+    return word.join("");
+  }
+
   function write(value) {
     if (gameEnded) return;
     const grids = document.querySelectorAll(
@@ -324,7 +339,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
 
     if (value === "BACKSPACE") return handleBackspace(grids);
-    if (value === "ENTER") return handleEnter(grids);
+    if (value === "ENTER") {
+      const word = getCurrentWord();
+      if (isValidWord(word)) {
+        lockedRows.add(currentRow);
+        return handleEnter(grids);
+      } else {
+        shakeRow(currentRow);
+        return;
+      }
+    }
 
     if (keys.includes(value) && currentCol < MAX_COLS) {
       grids.forEach((grid) => {
@@ -375,7 +399,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (lockedRows.has(currentRow) && key !== "ENTER") return;
       write(key);
       if (key === "ENTER") {
-        lockedRows.add(currentRow);
+        const word = getCurrentWord();
+        if (isValidWord(word)) {
+          lockedRows.add(currentRow);
+        } else {
+          shakeRow(currentRow);
+          return;
+        }
       }
     }
   });
@@ -387,7 +417,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       write(key);
 
       if (key === "ENTER") {
-        lockedRows.add(currentRow);
+        const word = getCurrentWord();
+        if (isValidWord(word)) {
+          lockedRows.add(currentRow);
+        } else {
+          shakeRow(currentRow);
+          return;
+        }
       }
     }
   });
