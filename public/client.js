@@ -1,5 +1,3 @@
-// remove GAROA
-
 document.addEventListener("DOMContentLoaded", async () => {
   let gameEnded = false;
   const completedGrids = new Set();
@@ -19,7 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const classes = {
     base: [
-      "text-white",
+      "text-[var(--color-termo-text)]",
       "font-[Mitr]",
       "cursor-pointer",
       "font-semibold",
@@ -29,27 +27,50 @@ document.addEventListener("DOMContentLoaded", async () => {
     button: [
       "p-0",
       "w-6",
-      "h-6",
-      "text-white",
-      "bg-slate-600",
       "rounded",
-      "text-sm",
-      "font-semibold",
+      "bg-[var(--color-termo-key)]",
       "font-[Mitr]",
+      "font-semibold",
       "last:w-fit",
-
-      // Larger sizes for larger screens
-      "sm:p-2",
+      "last:px-2",
+      "sm:p-1",
       "sm:w-10",
       "sm:h-10",
       "sm:text-lg",
+      "transition",
+      "duration-150",
+      "ease-in-out",
     ],
-    correct: ["bg-lime-500", "border-lime-500"],
-    present: ["bg-yellow-500", "border-yellow-500"],
-    used: ["bg-slate-900", "border-slate-900", "bg-opacity-30"],
-    incorrect: ["bg-slate-500", "border-slate-500"],
-    active: ["bg-transparent", "border-slate-500", "opacity-100"],
-    focus: ["border-white"],
+    correct: [
+      "bg-[var(--color-termo-correct)]",
+      "border-[var(--color-termo-correct)]",
+      "text-[var(--color-termo-absent)]",
+    ],
+    present: [
+      "bg-[var(--color-termo-present)]",
+      "border-[var(--color-termo-present)]",
+      "text-[var(--color-termo-absent)]",
+    ],
+    incorrect: [
+      "bg-[var(--color-termo-absent)]",
+      "border-[var(--color-termo-absent)]",
+      "text-[var(--color-termo-text)]",
+    ],
+    used: [
+      "bg-[var(--color-termo-absent)]",
+      "border-[var(--color-termo-absent)]",
+      "bg-opacity-30",
+    ],
+    active: [
+      "bg-[var(--color-termo-active)]",
+      "border-[var(--color-termo-active)]",
+      "text-[var(--color-termo-text)]",
+    ],
+    focus: [
+      "bg-transparent",
+      "border-[var(--color-termo-active)]",
+      "text-[var(--color-termo-active)]",
+    ],
   };
 
   let wordSet = new Set();
@@ -84,12 +105,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           "flex",
           "items-center",
           "justify-center",
-          "text-white",
           "uppercase",
           "rounded-md",
         );
         if (row > 0) {
-          cell.classList.add("bg-slate-500", "opacity-50", "border-slate-500");
+          cell.classList.add(...classes.active, "opacity-50");
         }
 
         cell.dataset.row = row;
@@ -321,6 +341,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateFocus();
   }
 
+  const lockedRows = new Set();
+
   document.addEventListener("keydown", (event) => {
     if (event.ctrlKey || event.metaKey) {
       if (
@@ -349,12 +371,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (
       keys.includes(key) ||
       ["BACKSPACE", "ENTER"].includes(key)
-    ) write(key);
+    ) {
+      if (lockedRows.has(currentRow) && key !== "ENTER") return;
+      write(key);
+      if (key === "ENTER") {
+        lockedRows.add(currentRow);
+      }
+    }
   });
 
   keyboard.addEventListener("click", (event) => {
     const key = event.target.dataset.key;
-    if (key) write(key);
+    if (key) {
+      if (lockedRows.has(currentRow) && key !== "ENTER") return;
+      write(key);
+
+      if (key === "ENTER") {
+        lockedRows.add(currentRow);
+      }
+    }
   });
 
   updateFocus();

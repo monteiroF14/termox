@@ -1,6 +1,6 @@
 {
-	"background_color": "#bfdbfe",
-	"theme_color": "#334155",
+	"background_color": "#e3e4e6",
+	"theme_color": "#0b2545",
 	"description": "TERMO mobile",
 	"display": "standalone",
 	"gcm_user_visible_only": true,
@@ -13,7 +13,7 @@
 	],
 	"name": "TERMOx",
 	"short_name": "TERMOx",
-	"start_url": "http://localhost:3000",
+	"start_url": "https://termox-production.up.railway.app",
 	"scope": "/",
 	"launch_handler": {
 		"route_to": "existing-client",
