@@ -1,3 +1,9 @@
+const isStandalone = window.matchMedia("(display-mode: standalone)").matches ||
+  window.navigator.standalone === true;
+
+const app = document.getElementById("app");
+app.dataset.mode = isStandalone ? "pwa" : "browser";
+
 if (screen.orientation && screen.orientation.lock) {
   screen.orientation.lock("portrait").catch((err) => {
     console.warn("Orientation lock failed:", err);

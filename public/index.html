@@ -37,6 +37,22 @@
                 --color-termo-key: #a58d88;
             }
         }
+
+        @layer utilities {
+            [data-mode="pwa"] {
+                overflow: hidden;
+            }
+
+            [data-mode="browser"] {
+                overflow: auto;
+            }
+        }
+
+        @media all and (display-mode: standalone) {
+            body {
+                overflow: hidden;
+            }
+        }
     </style>
 
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#e3e4e6" />
@@ -50,9 +66,10 @@
 </head>
 
 <body
-    class="flex flex-col items-center justify-center font-mitr font-semibold text-lg bg-[var(--color-termo-background)] text-[var(--color-termo-text)] overflow-hidden px-4">
+    class="flex flex-col items-center justify-center font-mitr font-semibold text-lg bg-[var(--color-termo-background)] text-[var(--color-termo-text)] px-4">
     <div id="modal"></div>
-    <main class="grid grid-rows-[auto_1fr_auto] gap-2 w-full max-w-2xl items-center min-h-screen">
+    <main id="app" data-mode="browser"
+        class="grid grid-rows-[auto_1fr_auto] gap-2 w-full max-w-2xl items-center min-h-screen">
         <section class="mx-auto grid gap-4 mt-8">
             <h1 class="text-4xl font-semibold font-[Mitr] text-[var(--color-termo-title)] tracking-wider text-center">
                 TERMOx
