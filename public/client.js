@@ -1,3 +1,9 @@
+if (screen.orientation && screen.orientation.lock) {
+  screen.orientation.lock("portrait").catch((err) => {
+    console.warn("Orientation lock failed:", err);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   let gameEnded = false;
   const completedGrids = new Set();
@@ -29,6 +35,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       "w-6",
       "rounded",
       "bg-[var(--color-termo-key)]",
+      "text-[var(--color-termo-background)]",
       "font-[Mitr]",
       "font-semibold",
       "last:w-fit",
