@@ -4,21 +4,6 @@ const isStandalone = window.matchMedia("(display-mode: standalone)").matches ||
 const app = document.getElementById("app");
 app.dataset.mode = isStandalone ? "pwa" : "browser";
 
-document.addEventListener("click", () => {
-  if (isStandalone) {
-    if (document.fullscreenElement == null) {
-      document.documentElement.requestFullscreen().then(() => {
-        screen.orientation?.lock("portrait").catch((err) => {
-          alert(err);
-          console.warn("Orientation lock failed:", err);
-        });
-      }).catch((err) => {
-        console.warn("Fullscreen request failed:", err);
-      });
-    }
-  }
-}, { once: true });
-
 document.addEventListener("DOMContentLoaded", async () => {
   let gameEnded = false;
   const completedGrids = new Set();
