@@ -29,11 +29,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       "font-semibold",
       "rounded-md",
       "opacity-100",
-    ],
-    button: [
       "flex",
       "items-center",
       "justify-center",
+    ],
+    button: [
       "rounded",
       "bg-[var(--color-termo-key)]",
       "text-[var(--color-termo-background)]",
@@ -46,6 +46,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       "sm:w-10",
       "sm:h-10",
       "sm:text-lg",
+      "md:text-xl",
       "transition",
       "duration-150",
       "ease-in-out",
@@ -93,7 +94,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function createGameGrid(gridIndex) {
     const gridWrapper = document.createElement("div");
-    gridWrapper.classList.add("mb-8");
 
     const grid = document.createElement("div");
     grid.classList.add("grid", "grid-rows-6", "gap-2", "mb-4");
@@ -108,9 +108,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         const cell = document.createElement("div");
         cell.classList.add(
           "size-12",
+          "sm:size-14",
           "border-4",
           "text-3xl",
-          "text-center",
+          "sm:text-4xl",
           "flex",
           "items-center",
           "justify-center",
@@ -508,15 +509,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (allCorrect) {
       resultMessage.textContent = "Great job! You guessed all words.";
-      attemptsText.textContent = `You solved it in ${currentRow + 1
-        } attempts. Well done!`;
+      attemptsText.textContent = `You solved it in ${
+        currentRow + 1
+      } attempts. Well done!`;
       revealedWord.innerHTML = "";
     } else {
       resultMessage.textContent = "Game Over! Better luck next time!";
       attemptsText.textContent =
         `You reached the max attempts (${MAX_ROWS}). Keep practicing!`;
       revealedWord.innerHTML =
-        `<span class="text-gray-500 font-semibold">The words were: </span><span id="actual-word" class="font-semibold">${chosen.join(", ")
+        `<span class="text-gray-500 font-semibold">The words were: </span><span id="actual-word" class="font-semibold">${
+          chosen.join(", ")
         }</span>`;
       revealedWord.classList.add("text-6xl", "font-extrabold", "text-red-500");
     }

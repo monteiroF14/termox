@@ -50,27 +50,32 @@
 </head>
 
 <body
-    class="flex flex-col items-center justify-center font-mitr font-semibold text-lg min-h-screen bg-[var(--color-termo-background)] text-[var(--color-termo-text)] p-4">
+    class="flex flex-col items-center justify-center font-mitr font-semibold text-lg bg-[var(--color-termo-background)] text-[var(--color-termo-text)] overflow-hidden px-4">
     <div id="modal"></div>
-    <h1 class="text-4xl font-semibold font-[Mitr] text-[var(--color-termo-title)] mb-4 tracking-wider">TERMOx</h1>
-    <nav class="mb-6 space-x-4 flex justify-center">
-        <a href="/" class="text-[var(--color-termo-link)] hover:underline">
-            Termo
-        </a>
-        <a href="/?q=2" class="text-[var(--color-termo-link)] hover:underline">
-            Dueto
-        </a>
-        <a href="/?q=4" class="text-[var(--color-termo-link)] hover:underline">
-            Quarteto
-        </a>
-    </nav>
-
-    <div id="game-container" class="flex flex-col items-center space-y-6"></div>
-    <div id="keyboard-buttons" class="grid grid-cols-10 gap-x-1 gap-y-3 sm:gap-y-2 max-w-md"></div>
+    <main class="grid grid-rows-[auto_1fr_auto] gap-2 w-full max-w-2xl items-center min-h-screen">
+        <section class="mx-auto grid gap-4 mt-8">
+            <h1 class="text-4xl font-semibold font-[Mitr] text-[var(--color-termo-title)] tracking-wider text-center">
+                TERMOx
+            </h1>
+            <nav class="space-x-4 flex justify-center">
+                <a href="/" class="text-[var(--color-termo-link)] hover:underline">
+                    Termo
+                </a>
+                <a href="/?q=2" class="text-[var(--color-termo-link)] hover:underline">
+                    Dueto
+                </a>
+                <a href="/?q=4" class="text-[var(--color-termo-link)] hover:underline">
+                    Quarteto
+                </a>
+            </nav>
+        </section>
+        <section id="game-container" class="flex flex-col items-center"></section>
+        <section id="keyboard-buttons"
+            class="grid grid-cols-10 gap-x-1 gap-y-3 sm:gap-y-2 max-w-md mb-8 md:mb-16 sm:mb-12 mx-auto"></section>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
+    <script src="client.js"></script>
 </body>
-
-<script src="client.js"></script>
 
 </html>
