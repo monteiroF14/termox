@@ -64,7 +64,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     incorrect: [
       "bg-[var(--color-termo-absent)]",
       "border-[var(--color-termo-absent)]",
-      "text-[var(--color-termo-text)]",
+      "text-[var(--color-termo-background)]",
+      "dark:text-[var(--color-termo-title)]",
     ],
     used: [
       "bg-[var(--color-termo-absent)]",
@@ -74,7 +75,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     active: [
       "bg-[var(--color-termo-active)]",
       "border-[var(--color-termo-active)]",
-      "text-[var(--color-termo-text)]",
+      "text-[var(--color-termo-background)]",
     ],
     focus: [
       "bg-transparent",
@@ -96,12 +97,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const gridWrapper = document.createElement("div");
 
     const grid = document.createElement("div");
-    grid.classList.add("grid", "grid-rows-6", "gap-2", "mb-4");
+    grid.classList.add("grid", "grid-rows-6", "gap-1", "mb-4");
     grid.dataset.gridIndex = gridIndex;
 
     for (let row = 0; row < MAX_ROWS; row++) {
       const rowDiv = document.createElement("div");
-      rowDiv.classList.add("grid", "grid-cols-5", "gap-2");
+      rowDiv.classList.add("grid", "grid-cols-5", "gap-1");
       rowDiv.dataset.row = row;
 
       for (let col = 0; col < MAX_COLS; col++) {
@@ -213,11 +214,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       else completedGrids.add(index);
     });
 
-    if (!isValidWord(word)) {
-      shakeRow(currentRow);
-      return;
-    }
-
     await Promise.all(
       chosen.map((chosenWord) => flipCells(currentRow, chosenWord)),
     );
@@ -283,46 +279,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  function flipCells(rowIndex, chosenWord) {
-    return Promise.all(
-      Array.from(document.querySelectorAll("[data-grid-index]"), (grid) => {
-        const rows = grid.querySelectorAll(".grid > .grid-cols-5");
-        if (rowIndex >= rows.length) return Promise.resolve();
-
-        const row = rows[rowIndex].children;
-
-        return Promise.all(
-          Array.from(row, (cell, index) => {
-            const letter = cell.textContent.trim();
-            const keyboardKey = keyboard.querySelector(
-              `[data-key="${letter}"]`,
-            );
-            return new Promise((resolve) => {
-              setTimeout(() => {
-                if (chosenWord[index] === letter) {
-                  applyClass(cell, "correct");
-                  applyClass(keyboardKey, "correct");
-                } else if (chosenWord.includes(letter)) {
-                  applyClass(cell, "present");
-                  if (!keyboardKey.classList.contains("bg-lime-500")) {
-                    applyClass(keyboardKey, "present");
-                  }
-                } else {
-                  applyClass(cell, "incorrect");
-                  applyClass(keyboardKey, "used");
-                }
-                resolve();
-              }, index * 450);
-            });
-          }),
-        );
-      }),
-    );
+  async function flipCells(rowIndex, chosenWord) {
+    const grids = document.querySelectorAll("[data-grid-index]");
+    for (const grid of grids) {
+      const rows = grid.querySelectorAll(".grid > .grid-cols-5");
+      if (rowIndex >= rows.length) continue;
+      const row = rows[rowIndex].children;
+      for (let index = 0; index < row.length; index++) {
+        const cell = row[index];
+        const letter = cell.textContent.trim();
+        const keyboardKey = keyboard.querySelector(`[data-key="${letter}"]`);
+        cell.classList.add("flip-animation");
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        if (chosenWord[index] === letter) {
+          applyClass(cell, "correct");
+          applyClass(keyboardKey, "correct");
+        } else if (chosenWord.includes(letter)) {
+          applyClass(cell, "present");
+          if (!keyboardKey.classList.contains("bg-lime-500")) {
+            applyClass(keyboardKey, "present");
+          }
+        } else {
+          applyClass(cell, "incorrect");
+          applyClass(keyboardKey, "used");
+        }
+        cell.classList.remove("flip-animation");
+      }
+    }
   }
 
   function selectCell(rowIndex, colIndex) {
     if (rowIndex !== currentRow) return;
-
     currentRow = rowIndex;
     currentCol = colIndex;
     updateFocus();
@@ -367,6 +354,12 @@ document.addEventListener("DOMContentLoaded", async () => {
           `[data-grid-index] [data-row='${currentRow}'][data-col='${currentCol}']`,
         );
         if (cell) {
+          cell.classList.remove("write-animation");
+          void cell.offsetWidth;
+          cell.classList.add("write-animation");
+          cell.addEventListener("animationend", () => {
+            cell.classList.remove("write-animation");
+          }, { once: true });
           cell.textContent = value;
         }
       });
