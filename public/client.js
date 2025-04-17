@@ -31,6 +31,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       "opacity-100",
     ],
     button: [
+      "flex",
+      "items-center",
+      "justify-center",
       "rounded",
       "bg-[var(--color-termo-key)]",
       "text-[var(--color-termo-background)]",
@@ -39,6 +42,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       "last:w-fit",
       "last:px-2",
       "sm:p-1",
+      "py-2",
       "sm:w-10",
       "sm:h-10",
       "sm:text-lg",
@@ -504,15 +508,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (allCorrect) {
       resultMessage.textContent = "Great job! You guessed all words.";
-      attemptsText.textContent = `You solved it in ${currentRow + 1
-        } attempts. Well done!`;
+      attemptsText.textContent = `You solved it in ${
+        currentRow + 1
+      } attempts. Well done!`;
       revealedWord.innerHTML = "";
     } else {
       resultMessage.textContent = "Game Over! Better luck next time!";
       attemptsText.textContent =
         `You reached the max attempts (${MAX_ROWS}). Keep practicing!`;
       revealedWord.innerHTML =
-        `<span class="text-gray-500 font-semibold">The words were: </span><span id="actual-word" class="font-semibold">${chosen.join(", ")
+        `<span class="text-gray-500 font-semibold">The words were: </span><span id="actual-word" class="font-semibold">${
+          chosen.join(", ")
         }</span>`;
       revealedWord.classList.add("text-6xl", "font-extrabold", "text-red-500");
     }
