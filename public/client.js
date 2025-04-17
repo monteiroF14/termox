@@ -4,12 +4,18 @@ const isStandalone = window.matchMedia("(display-mode: standalone)").matches ||
 const app = document.getElementById("app");
 app.dataset.mode = isStandalone ? "pwa" : "browser";
 
-if (isStandalone && screen.orientation?.lock) {
-  screen.orientation.lock("portrait").catch((err) => {
-    alert(err);
-    console.warn("Orientation lock failed:", err);
-  });
-}
+document.addEventListener("click", () => {
+  if (document.fullscreenElement == null) {
+    document.documentElement.requestFullscreen().then(() => {
+      isStandalone && screen.orientation?.lock("portrait").catch((err) => {
+        alert(err);
+        console.warn("Orientation lock failed:", err);
+      });
+    }).catch((err) => {
+      console.warn("Fullscreen request failed:", err);
+    });
+  }
+}, { once: true });
 
 document.addEventListener("DOMContentLoaded", async () => {
   let gameEnded = false;
