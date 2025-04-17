@@ -13,6 +13,7 @@
 	],
 	"name": "TERMOx",
 	"short_name": "TERMOx",
+	"orientation": "portrait",
 	"start_url": "https://termox-production.up.railway.app",
 	"scope": "/",
 	"launch_handler": {
