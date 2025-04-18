@@ -2,14 +2,14 @@
     class="grid place-items-center
     block overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
     <div class="relative p-4 w-full max-w-2xl max-h-full">
-        <div class="relative bg-white rounded-lg shadow-lg dark:bg-gray-800">
+        <div class="relative rounded-lg shadow-xl bg-[var(--color-termo-active)]">
             <div
                 class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
-                <h3 class="text-xl font-semibold mx-auto flex grow text-gray-900 dark:text-white font-[Mitr]">
+                <h3 class="text-xl font-semibold ml-auto flex grow font-[Mitr] text-[var(--color-termo-background)]">
                     GAME OVER
                 </h3>
                 <button type="button"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                    class="text-[var(--color-termo-background)] dark:text-[var(--color-termo-title)] bg-transparent hover:bg-[var(--color-termo-absent)] hover:text-[var(--color-termo-background)] rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center"
                     data-modal-hide="static-modal">
                     <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 14 14">
@@ -21,25 +21,23 @@
             </div>
             <div class="p-4 md:p-5 space-y-4">
                 <div id="game-result-message"
-                    class="text-lg font-semibold text-center text-gray-700 dark:text-gray-300 font-[Mitr]">
+                    class="text-lg font-semibold text-center text-[var(--color-termo-background)] font-[Inter]">
                 </div>
 
-                <div id="attempts-text" class="text-base text-center text-gray-500 dark:text-gray-400 font-[Mitr]">
+                <div id="attempts-text" class="text-base text-center text-[var(--color-termo-background)] font-[Inter]">
                 </div>
 
                 <div id="revealed-word"
-                    class="text-xl font-bold text-center text-green-600 dark:text-green-400 font-[Mitr]">
+                    class="text-2xl underline font-bold text-center text-[var(--color-termo-absent)] dark:text-[--color-termo-correct] font-[Mitr]">
                 </div>
 
-                <div class="text-center text-gray-600 dark:text-gray-300 font-[Mitr]">
-                    <p class="font-semibold dark:text-lime-400">
-                        Keep going, and play again for a fresh challenge!
-                    </p>
-                </div>
+                <p class="text-center text-[var(--color-termo-background)] font-[Inter] font-semibold">
+                    Keep going, and play again for a fresh challenge!
+                </p>
             </div>
             <div class="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
                 <button data-modal-hide="static-modal" id="play-again" type="button"
-                    class="text-white bg-slate-700 hover:bg-lime-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mx-auto dark:bg-slate-600 dark:hover:bg-slate-700 dark:focus:ring-slate-800">Play
+                    class="text-[var(--color-termo-background)] dark:text-[var(--color-termo-title)] focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center mx-auto bg-[var(--color-termo-absent)]">Play
                     again!</button>
             </div>
         </div>

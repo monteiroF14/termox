@@ -290,7 +290,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const letter = cell.textContent.trim();
         const keyboardKey = keyboard.querySelector(`[data-key="${letter}"]`);
         cell.classList.add("flip-animation");
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        await new Promise((resolve) => setTimeout(resolve, 450));
         if (chosenWord[index] === letter) {
           applyClass(cell, "correct");
           applyClass(keyboardKey, "correct");
@@ -502,19 +502,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (allCorrect) {
       resultMessage.textContent = "Great job! You guessed all words.";
-      attemptsText.textContent = `You solved it in ${
-        currentRow + 1
-      } attempts. Well done!`;
+      attemptsText.textContent = `You solved it in ${currentRow + 1
+        } attempts. Well done!`;
       revealedWord.innerHTML = "";
     } else {
       resultMessage.textContent = "Game Over! Better luck next time!";
       attemptsText.textContent =
-        `You reached the max attempts (${MAX_ROWS}). Keep practicing!`;
-      revealedWord.innerHTML =
-        `<span class="text-gray-500 font-semibold">The words were: </span><span id="actual-word" class="font-semibold">${
-          chosen.join(", ")
+        `You reached the max attempts. Keep practicing!`;
+      revealedWord.innerHTML = `<span id="actual-word" class="font-semibold">${chosen.join(", ")
         }</span>`;
-      revealedWord.classList.add("text-6xl", "font-extrabold", "text-red-500");
     }
   }
 });
