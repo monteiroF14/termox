@@ -5,11 +5,14 @@ const app = document.getElementById("app");
 app.dataset.mode = isStandalone ? "pwa" : "browser";
 
 document.addEventListener("DOMContentLoaded", async () => {
+  let inputLocked = false;
   let gameEnded = false;
   const completedGrids = new Set();
 
   const params = new URLSearchParams(globalThis.location.search);
-  const query = params.get("q") ?? 1;
+  let query = Number(params.get("q"));
+  if (isNaN(query) || query < 1) query = 1;
+  else if (query > 4) query = 4;
 
   const gameContainer = document.getElementById("game-container");
   const keyboard = document.getElementById("keyboard-buttons");
@@ -142,7 +145,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
     });
 
-  const isValidWord = (word) => wordSet.has(word.toUpperCase());
+  const isValidWord = (word) => {
+    if (!word || word.trim() === "") return false;
+    return wordSet.has(word.toUpperCase());
+  };
 
   function applyClass(element, type) {
     element.classList.remove(...Object.values(classes).flat());
@@ -198,7 +204,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   async function handleEnter(grids) {
-    let allCorrect = true;
+    if (inputLocked) return;
+    inputLocked = true;
+
+    let allCorrect = false;
     let word;
 
     grids.forEach((grid, index) => {
@@ -226,6 +235,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       currentCol = 0;
       updateFocus();
     }
+
+    inputLocked = false;
   }
 
   async function startGame() {
@@ -289,6 +300,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const cell = row[index];
         const letter = cell.textContent.trim();
         const keyboardKey = keyboard.querySelector(`[data-key="${letter}"]`);
+        if (!letter || !keyboardKey) return;
         cell.classList.add("flip-animation");
         await new Promise((resolve) => setTimeout(resolve, 450));
         if (chosenWord[index] === letter) {
@@ -331,7 +343,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function write(value) {
-    if (gameEnded) return;
+    if (gameEnded || inputLocked) return;
     const grids = document.querySelectorAll(
       "[data-grid-index]:not([data-row]):not([data-col])",
     );
@@ -502,15 +514,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (allCorrect) {
       resultMessage.textContent = "Great job! You guessed all words.";
-      attemptsText.textContent = `You solved it in ${currentRow + 1
-        } attempts. Well done!`;
+      attemptsText.textContent = `You solved it in ${
+        currentRow + 1
+      } attempts. Well done!`;
       revealedWord.innerHTML = "";
     } else {
       resultMessage.textContent = "Game Over! Better luck next time!";
       attemptsText.textContent =
         `You reached the max attempts. Keep practicing!`;
-      revealedWord.innerHTML = `<span id="actual-word" class="font-semibold">${chosen.join(", ")
-        }</span>`;
+      revealedWord.innerHTML = `<span id="actual-word" class="font-semibold">${
+        chosen.join(", ")
+      }</span>`;
     }
   }
 });
