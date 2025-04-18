@@ -207,7 +207,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (inputLocked) return;
     inputLocked = true;
 
-    let allCorrect = false;
+    let allCorrect = true;
     let word;
 
     grids.forEach((grid, index) => {
@@ -291,6 +291,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   async function flipCells(rowIndex, chosenWord) {
+    inputLocked = true;
     const grids = document.querySelectorAll("[data-grid-index]");
     for (const grid of grids) {
       const rows = grid.querySelectorAll(".grid > .grid-cols-5");
@@ -318,6 +319,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         cell.classList.remove("flip-animation");
       }
     }
+    inputLocked = false;
   }
 
   function selectCell(rowIndex, colIndex) {
@@ -395,6 +397,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
+    if (inputLocked) return;
     if (event.key === "ArrowUp" && currentRow > 0) {
       return;
     } else if (event.key === "ArrowDown" && currentRow < MAX_ROWS - 1) {
@@ -514,17 +517,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (allCorrect) {
       resultMessage.textContent = "Great job! You guessed all words.";
-      attemptsText.textContent = `You solved it in ${
-        currentRow + 1
-      } attempts. Well done!`;
+      attemptsText.textContent = `You solved it in ${currentRow + 1
+        } attempts. Well done!`;
       revealedWord.innerHTML = "";
     } else {
       resultMessage.textContent = "Game Over! Better luck next time!";
       attemptsText.textContent =
         `You reached the max attempts. Keep practicing!`;
-      revealedWord.innerHTML = `<span id="actual-word" class="font-semibold">${
-        chosen.join(", ")
-      }</span>`;
+      revealedWord.innerHTML = `<span id="actual-word" class="font-semibold">${chosen.join(", ")
+        }</span>`;
     }
   }
 });
