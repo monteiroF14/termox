@@ -9,6 +9,8 @@ self.addEventListener("install", (event) => {
       .then((cache) =>
         cache.addAll([
           "/",
+          "/index.html",
+          "/modal.html",
           "/icon.png",
           "/wordlist",
           "/client.js",
@@ -68,7 +70,8 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     fetch(request)
       .then((response) => {
-        return response;
+        if (response) return response;
+        return caches.match("/index.html");
       })
       .catch(() => caches.match(request)),
   );
