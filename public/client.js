@@ -1,5 +1,16 @@
-const isStandalone = window.matchMedia("(display-mode: standalone)").matches ||
-  window.navigator.standalone === true;
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/service-worker.js")
+    .then((registration) =>
+      console.log("Service Worker registered:", registration)
+    )
+    .catch((error) =>
+      console.error("Service Worker registration failed:", error)
+    );
+}
+
+const isStandalone =
+  globalThis.matchMedia("(display-mode: standalone)").matches ||
+  globalThis.navigator.standalone === true;
 
 const app = document.getElementById("app");
 app.dataset.mode = isStandalone ? "pwa" : "browser";
@@ -517,15 +528,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (allCorrect) {
       resultMessage.textContent = "Great job! You guessed all words.";
-      attemptsText.textContent = `You solved it in ${currentRow + 1
-        } attempts. Well done!`;
+      attemptsText.textContent = `You solved it in ${
+        currentRow + 1
+      } attempts. Well done!`;
       revealedWord.innerHTML = "";
     } else {
       resultMessage.textContent = "Game Over! Better luck next time!";
       attemptsText.textContent =
         `You reached the max attempts. Keep practicing!`;
-      revealedWord.innerHTML = `<span id="actual-word" class="font-semibold">${chosen.join(", ")
-        }</span>`;
+      revealedWord.innerHTML = `<span id="actual-word" class="font-semibold">${
+        chosen.join(", ")
+      }</span>`;
     }
   }
 });
